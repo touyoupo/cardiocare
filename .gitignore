@@ -9,3 +9,4 @@ logs/*.log
 artifacts/monitor/
 artifacts/predictions.csv
 .ipynb_checkpoints/
+mlruns/

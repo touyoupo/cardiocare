@@ -46,6 +46,7 @@ DATA_URL = (
 )
 
 DEFAULT_DATA_PATH = "data/heart_disease.csv"
+MLRUNS_DIR = "mlruns"
 MODEL_PATH = "artifacts/model.pkl"
 METADATA_PATH = "artifacts/model_metadata.json"
 INFERENCE_LOG_PATH = "logs/inference.log"

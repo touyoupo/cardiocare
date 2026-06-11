@@ -42,6 +42,7 @@ from src.constants import (
     DEFAULT_DATA_PATH,
     FEATURE_COLUMNS,
     METADATA_PATH,
+    MLRUNS_DIR,
     MODEL_PATH,
     RANDOM_SEED,
 )
@@ -51,6 +52,13 @@ from src.preprocessing import (
     load_raw_dataframe,
     split_features_target,
 )
+
+
+def configure_mlflow() -> None:
+    """Use a project-local MLflow tracking directory with portable paths."""
+    tracking_dir = (PROJECT_ROOT / MLRUNS_DIR).resolve()
+    tracking_dir.mkdir(parents=True, exist_ok=True)
+    mlflow.set_tracking_uri(tracking_dir.as_uri())
 
 
 def build_model_pipeline(estimator) -> Pipeline:
@@ -336,6 +344,7 @@ def save_final_artifacts(
 
 def main() -> None:
     """End-to-end training entrypoint."""
+    configure_mlflow()
     dataframe = binarize_target(load_raw_dataframe(DEFAULT_DATA_PATH))
     features, target = split_features_target(dataframe)
 

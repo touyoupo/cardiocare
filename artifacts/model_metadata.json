@@ -4,7 +4,7 @@
   "selection_criterion": "maximize_recall_reduce_false_negatives",
   "comparison_table": [
     {
-      "run_id": "605647b70ba14974a1bce0c062a0e5e6",
+      "run_id": "d0182e13c6d549bbbf2b3eb7464c8623",
       "model_family": "logistic_regression",
       "balanced_accuracy": 0.8733766233766234,
       "precision": 0.8125,
@@ -12,7 +12,7 @@
       "f1": 0.8666666666666667
     },
     {
-      "run_id": "816b5e900c7641efb3c710b5a31d7904",
+      "run_id": "eef7c32e5fb94917be4cb42f600f16dc",
       "model_family": "svc",
       "balanced_accuracy": 0.8252164502164503,
       "precision": 0.7575757575757576,
@@ -20,7 +20,7 @@
       "f1": 0.819672131147541
     },
     {
-      "run_id": "e60c63b3727a4561b68b61ee3eaad98a",
+      "run_id": "9035d2e942ec429eb26a7f231a955d9d",
       "model_family": "random_forest",
       "balanced_accuracy": 0.8706709956709957,
       "precision": 0.8333333333333334,

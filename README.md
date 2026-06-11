@@ -23,11 +23,13 @@ Windows one-click reproduction:
 powershell -ExecutionPolicy Bypass -File scripts/reproduce.ps1
 ```
 
-View MLflow experiments:
+View MLflow experiments (generated locally after training, not committed to Git):
 
 ```bash
 mlflow ui
 ```
+
+For submission, include `mlruns/` screenshots in `report.pdf` or run `python src/train.py` and show the MLflow UI. Do not commit `mlruns/` from Windows, because absolute paths break Linux CI.
 
 ## Full Reproduction
 
