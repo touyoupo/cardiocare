@@ -43,7 +43,11 @@ def obscure_disease_signals(
     dataframe: pd.DataFrame,
     target: pd.Series,
 ) -> pd.DataFrame:
-    """Simulate clinically plausible drift that hides disease signals (raises FN, lowers recall)."""
+    """Simulate covariate + label-stratified drift at monitoring time only.
+
+    Uses held-out test labels to mimic measurement bias on disease cases — not
+    used during training and therefore not training leakage.
+    """
     shifted = dataframe.copy()
     mask = target == 1
     if not mask.any():

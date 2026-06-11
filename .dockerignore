@@ -3,7 +3,6 @@
 notebooks
 mlruns
 logs
-reports
 tests
 __pycache__
 *.pyc

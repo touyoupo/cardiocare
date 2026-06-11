@@ -112,6 +112,13 @@ def get_selected_feature_count(pipeline: Pipeline) -> int:
     return int(np.sum(selector.get_support()))
 
 
+def get_selected_features(pipeline: Pipeline) -> list[str]:
+    """Return feature names kept by SelectFromModel."""
+    selector = pipeline.named_steps["feature_selection"]
+    selected_mask = selector.get_support()
+    return [name for name, keep in zip(FEATURE_COLUMNS, selected_mask) if keep]
+
+
 def get_candidate_models() -> dict[str, object]:
     """Return at least three model families for comparison."""
     return {
@@ -282,11 +289,7 @@ def export_feature_importance(
 ) -> list[dict]:
     """Save feature-importance values when the final estimator supports them."""
     classifier = pipeline.named_steps["classifier"]
-    selector = pipeline.named_steps["feature_selection"]
-    selected_mask = selector.get_support()
-    selected_features = [
-        name for name, keep in zip(FEATURE_COLUMNS, selected_mask) if keep
-    ]
+    selected_features = get_selected_features(pipeline)
 
     importance_rows: list[dict] = []
     if hasattr(classifier, "feature_importances_"):
@@ -340,11 +343,13 @@ def save_final_artifacts(
         if importance_path.exists()
         else []
     )
+    selected_features = get_selected_features(pipeline)
 
     metadata = {
         "model_version": "1.0",
         "random_seed": RANDOM_SEED,
         "selection_criterion": "maximize_recall_reduce_false_negatives",
+        "selected_features": selected_features,
         "feature_store": {
             "registered_feature": "chol",
             "rationale_ko": (
@@ -378,6 +383,7 @@ def save_final_artifacts(
     metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     print(classification_report(y_test, pipeline.predict(X_test)))
     print("Model comparison:\n", comparison)
+    print(f"Selected features ({len(selected_features)}): {selected_features}")
     print(f"Saved model to {model_path}")
     return metadata
 
