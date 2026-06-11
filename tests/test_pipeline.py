@@ -105,7 +105,15 @@ class CardioCarePipelineTests(unittest.TestCase):
 
     def test_evaluate_classifier_returns_required_metrics(self) -> None:
         metrics = evaluate_classifier(self.model, self.sample_frame, self.sample_target)
-        for key in ["balanced_accuracy", "precision", "recall", "f1", "confusion_matrix"]:
+        for key in [
+            "accuracy",
+            "auc",
+            "balanced_accuracy",
+            "precision",
+            "recall",
+            "f1",
+            "confusion_matrix",
+        ]:
             self.assertIn(key, metrics)
 
 

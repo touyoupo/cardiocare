@@ -6,7 +6,14 @@ venv/
 .env
 .DS_Store
 logs/*.log
-artifacts/monitor/
 artifacts/predictions.csv
+/data/heart_disease.csv
+/artifacts/model.pkl
+/artifacts/model_metadata.json
+/artifacts/confusion_matrix.png
+/artifacts/feature_importance.png
 .ipynb_checkpoints/
-mlruns/
+mlruns/*
+!mlruns/README.md
+/.dvc/cache
+/.dvc/tmp

@@ -1,0 +1,37 @@
+# DVC pipeline — Git tracks code; DVC tracks data/model hashes in dvc.lock
+# Setup:  pip install dvc && dvc init (already done — see .dvc/)
+# Reproduce: dvc repro
+# Inspect:   dvc dag && dvc status
+
+vars:
+  - params.yaml
+
+stages:
+  download:
+    cmd: python data/download_data.py
+    outs:
+      - data/heart_disease.csv
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - params.yaml
+      - data/heart_disease.csv
+      - src/train.py
+      - src/preprocessing.py
+      - src/constants.py
+    outs:
+      - artifacts/model.pkl
+      - artifacts/model_metadata.json
+      - artifacts/confusion_matrix.png
+      - artifacts/feature_importance.png
+
+  monitor:
+    cmd: python src/monitor.py
+    deps:
+      - artifacts/model.pkl
+      - src/monitor.py
+    outs:
+      - artifacts/monitor/drift_hist_chol.png
+      - artifacts/monitor/metric_timeseries.png
+      - artifacts/monitor/monitor_summary.json

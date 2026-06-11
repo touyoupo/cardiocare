@@ -1,4 +1,7 @@
-"""Reusable preprocessing utilities and sklearn pipelines."""
+"""Reusable preprocessing utilities and sklearn pipelines.
+
+sklearn Pipeline reference: https://scikit-learn.org/stable/modules/compose.html
+"""
 
 from __future__ import annotations
 

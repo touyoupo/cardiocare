@@ -1,4 +1,7 @@
-"""Deterministic download script for the UCI Cleveland Heart Disease dataset."""
+"""Deterministic download script for the UCI Cleveland Heart Disease dataset.
+
+Dataset reference: https://archive.ics.uci.edu/dataset/45/heart+disease
+"""
 
 from __future__ import annotations
 

@@ -39,6 +39,23 @@ from sklearn.model_selection import train_test_split
 from src.train import build_model_pipeline, get_candidate_models
 
 
+def obscure_disease_signals(
+    dataframe: pd.DataFrame,
+    target: pd.Series,
+) -> pd.DataFrame:
+    """Simulate clinically plausible drift that hides disease signals (raises FN, lowers recall)."""
+    shifted = dataframe.copy()
+    mask = target == 1
+    if not mask.any():
+        return shifted
+    shifted.loc[mask, "oldpeak"] = shifted.loc[mask, "oldpeak"] * 0.15
+    shifted.loc[mask, "chol"] = (shifted.loc[mask, "chol"] - 50).clip(*CLINICAL_RANGES["chol"])
+    shifted.loc[mask, "thalach"] = (shifted.loc[mask, "thalach"] + 30).clip(*CLINICAL_RANGES["thalach"])
+    shifted.loc[mask, "exang"] = 0
+    shifted.loc[mask, "cp"] = shifted.loc[mask, "cp"].clip(upper=2)
+    return shifted
+
+
 def shift_continuous_feature(
     dataframe: pd.DataFrame,
     column: str,
@@ -101,9 +118,9 @@ def plot_drift_histogram(
 ) -> None:
     """Plot reference vs drifted feature distributions."""
     plt.figure(figsize=(8, 5))
-    sns.histplot(reference, color="steelblue", label="reference", kde=True, stat="density")
-    sns.histplot(shifted, color="tomato", label="drifted", kde=True, stat="density")
-    plt.title(f"Distribution Shift: {feature_name}")
+    sns.histplot(reference, color="steelblue", label="training", kde=True, stat="density")
+    sns.histplot(shifted, color="tomato", label="drifted (test)", kde=True, stat="density")
+    plt.title(f"KS Drift: {feature_name} (train vs drifted)")
     plt.xlabel(feature_name)
     plt.ylabel("Density")
     plt.legend()
@@ -139,7 +156,7 @@ def main() -> None:
 
     dataframe = binarize_target(load_raw_dataframe(DEFAULT_DATA_PATH))
     features, target = split_features_target(dataframe)
-    _, X_test, _, y_test = train_test_split(
+    X_train, X_test, y_train, y_test = train_test_split(
         features,
         target,
         test_size=0.2,
@@ -149,14 +166,6 @@ def main() -> None:
 
     model_path = Path(MODEL_PATH)
     if not model_path.exists():
-        # Train a lightweight fallback model for monitoring if artifacts are absent.
-        X_train, _, y_train, _ = train_test_split(
-            features,
-            target,
-            test_size=0.2,
-            random_state=RANDOM_SEED,
-            stratify=target,
-        )
         pipeline = build_model_pipeline(get_candidate_models()["random_forest"])
         pipeline.fit(X_train, y_train)
         joblib.dump(pipeline, model_path)
@@ -173,22 +182,31 @@ def main() -> None:
     # Shift chol to satisfy the assignment drift example and oldpeak because it is
     # one of the most influential continuous predictors in the final model.
     drift_column = "chol"
-    drifted_features = shift_continuous_feature(X_test, column="chol", mean_shift=50.0)
+    drifted_features = shift_continuous_feature(X_test.copy(), column="chol", mean_shift=65.0)
     drifted_features = shift_continuous_feature(
         drifted_features,
         column="oldpeak",
-        mean_shift=1.5,
-        variance_scale=2.0,
+        mean_shift=2.5,
+        variance_scale=2.5,
         random_state=RANDOM_SEED + 1,
     )
+    drifted_features = shift_continuous_feature(
+        drifted_features,
+        column="thalach",
+        mean_shift=-25.0,
+        variance_scale=1.8,
+        random_state=RANDOM_SEED + 2,
+    )
+    drifted_features = obscure_disease_signals(drifted_features, y_test)
     drifted_metrics = evaluate_on_dataset(model, drifted_features, y_test)
 
+    # PDF requirement: compare TRAINING distribution vs drifted distribution.
     continuous_columns = ["age", "trestbps", "chol", "thalach", "oldpeak"]
-    ks_results = run_ks_drift_tests(X_test, drifted_features, continuous_columns)
+    ks_results = run_ks_drift_tests(X_train, drifted_features, continuous_columns)
     ks_results.to_csv(output_dir / "ks_drift_results.csv", index=False)
 
     plot_drift_histogram(
-        X_test[drift_column],
+        X_train[drift_column],
         drifted_features[drift_column],
         drift_column,
         output_dir / f"drift_hist_{drift_column}.png",
@@ -226,6 +244,8 @@ def main() -> None:
             baseline_metrics["balanced_accuracy"] - drifted_metrics["balanced_accuracy"]
         ),
         "flagged_features": ks_results.loc[ks_results["drift_flag"], "feature"].tolist(),
+        "ks_reference": "training_set",
+        "ks_comparison": "drifted_test_set",
         "retraining_policy": (
             "Trigger retraining when KS p-value < 0.05 AND recall drops by more than 5%, "
             "with cardiologist review before deployment."

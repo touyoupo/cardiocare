@@ -7,3 +7,5 @@ mlflow==2.18.0
 scipy==1.14.1
 joblib==1.4.2
 fpdf2==2.8.2
+dvc==3.56.0
+pathspec==0.12.1

@@ -1,58 +1,13 @@
 # CardioCare — End-to-End Heart Disease ML System
 
-**伦理声明 / Ethics:** 本系统仅作为心脏科医生的决策辅助工具，不具备独立诊断资格，所有最终医疗决策必须由执业医师做出。The system informs clinical decisions; it does not replace physicians.
+**윤리 선언:** 본 시스템은 심장 전문의의 의사결정을 보조하는 도구이며, 독립적인 진단 자격이 없습니다. 모든 최종 의료 결정은 면허를 가진 의사가 내려야 합니다.
 
-## Dataset
-
-- **Source:** [UCI Heart Disease — Cleveland subset](https://archive.ics.uci.edu/dataset/45/heart+disease)
-- **Version:** `processed.cleveland.data` downloaded deterministically via `data/download_data.py`
-- **Target:** binarized as `0 = healthy`, `1 = heart disease`
-
-## Quick Start (3 commands)
-
-```bash
-pip install -r requirements.txt
-python data/download_data.py
-python src/train.py
-python -m unittest discover -s tests -v
-```
-
-Windows one-click reproduction:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/reproduce.ps1
-```
-
-View MLflow experiments (generated locally after training, not committed to Git):
-
-```bash
-mlflow ui
-```
-
-For submission, include `mlruns/` screenshots in `report.pdf` or run `python src/train.py` and show the MLflow UI. Do not commit `mlruns/` from Windows, because absolute paths break Linux CI.
-
-## Full Reproduction
-
-```bash
-git clone <your-repo-url>
-cd ml
-pip install -r requirements.txt
-python data/download_data.py
-python src/train.py
-python src/inference.py --input data/sample_batch.csv
-python src/monitor.py
-python -m unittest discover -s tests -v
-docker build -t cardiocare:1.0 .
-docker run --rm cardiocare:1.0
-python reports/build_report_pdf.py
-```
-
-## Repository Structure
+## 저장소 구조
 
 ```
-├── data/
+.
+├── data/                          # 데이터 또는 데이터 fetch 스크립트
 │   ├── download_data.py
-│   ├── heart_disease.csv          # generated
 │   └── sample_batch.csv
 ├── notebooks/
 │   └── 01_eda_preprocessing.ipynb
@@ -63,70 +18,76 @@ python reports/build_report_pdf.py
 │   └── monitor.py
 ├── tests/
 │   └── test_pipeline.py
-├── artifacts/
-│   ├── model.pkl
-│   └── model_metadata.json
-├── mlruns/                        # MLflow experiment tracking
+├── mlruns/                        # MLflow 산출물 (용량 과대 시 report.pdf 스크린샷)
 ├── Dockerfile
 ├── requirements.txt
-├── .github/workflows/ci.yml
-├── report.pdf                     # generated
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── report.pdf
 └── README.md
 ```
 
-## Design Notes
+## 전체 재현 절차
 
-### No Data Leakage
-1. `train_test_split` happens **before** any fit operation.
-2. Imputation, IQR clipping, scaling, and feature selection are inside sklearn `Pipeline` and fit **only on training data**.
+채점자는 **README만 보고** 아래 순서로 전체 과정을 재현할 수 있어야 합니다.
 
-### Reproducibility
-- Global random seed: `42`
-- Pinned dependency versions in `requirements.txt`
+```bash
+# 1. clone
+git clone https://github.com/touyoupo/cardiocare.git
+cd cardiocare
 
-### Model Selection
-- Compare Logistic Regression, SVC, and Random Forest
-- Track all runs in MLflow
-- Final model chosen by **highest recall** to reduce false negatives in clinical use
+# 2. 의존성 설치
+pip install -r requirements.txt
 
-### Feature Store / Model Registry (conceptual)
-- **Feature Store candidate:** `chol` — frequently drift-prone and clinically meaningful; centralizing it enables consistent validation and monitoring.
-- **Model Registry metadata:** `training_data_hash`, `recall_on_holdout`, `random_seed`, `selected_features` — required for safe rollback and audit trails.
+# 3. 학습 (데이터 없으면 data/download_data.py 자동 실행)
+python src/train.py
 
-### MLOps Loop
-`Code Commit → CI Tests → CD Deploy → CM Drift Monitoring → CT Retrain → Model Update`
+# 4. Docker 이미지 빌드
+docker build -t cardiocare:1.0 .
 
-Human-in-the-loop review is required before any automated retraining result reaches production.
+# 5. 단위 테스트
+python -m unittest discover -s tests -v
+```
+
+### 선택 실행 (보고서·모니터링)
+
+```bash
+# Docker 컨테이너 추론
+docker run --rm cardiocare:1.0
+
+# 드리프트 모니터링
+python src/monitor.py
+
+# MLflow UI (mlruns/ 생성 후)
+mlflow ui
+```
+
+## Dataset
+
+- **Source:** [UCI Heart Disease — Cleveland subset](https://archive.ics.uci.edu/dataset/45/heart+disease)
+- **Script:** `data/download_data.py` (`train.py` 실행 시 자동 호출)
+- **Target:** `0 = healthy`, `1 = heart disease`
+
+## Design Highlights
+
+- **No data leakage:** split first, fit preprocessors on train only
+- **seed=42** everywhere; pinned `requirements.txt`
+- **Model selection:** highest **recall** (reduce false negatives)
+- **MLflow:** 3 model families logged; screenshots in `report.pdf`
+- **CI:** https://github.com/touyoupo/cardiocare/actions
+
+## Feature Store & Model Registry (§5.3)
+
+| 항목 | 내용 | 선정 이유 |
+|------|------|-----------|
+| **Feature Store (1개)** | `chol` (콜레스테롤) | 심혈관 위험의 핵심 연속 지표; IQR 클리핑·표준화 후 재사용 가능 |
+| **Model Registry (1개 메타데이터)** | `recall_on_holdout` | 위음성(FN) 위험 최소화를 위해 모델 승격·롤백의 1차 기준 |
+
+## DVC (선택 확장)
+
+`.dvc/`, `dvc.yaml`, `dvc.lock`, `params.yaml` — `dvc repro`로 파이프라인 재현 가능.
 
 ## AI Tool Disclosure
 
-See `report.pdf` appendix. This repository used AI assistants for boilerplate scaffolding and debugging; all experiments, metrics, and design decisions were validated by the author.
-
-## GitHub Submission Steps
-
-```bash
-cd c:\Users\34364\Desktop\ml
-git init
-git add .
-git commit -m "Complete CardioCare end-to-end ML project"
-git branch -M main
-git remote add origin https://github.com/<your-username>/cardiocare.git
-git push -u origin main
-```
-
-After pushing, confirm GitHub Actions CI is green on the `main` branch.
-
-## Docker (optional local check)
-
-```bash
-docker build -t cardiocare:1.0 .
-docker run --rm cardiocare:1.0
-```
-
-## Report
-
-```bash
-python reports/build_report_pdf.py
-```
-
-This generates `report.pdf` with metrics, ethics statements, model comparison, and embedded figures.
+본 프로젝트는 ChatGPT를 코드 템플릿 작성 및 디버깅에 사용했으며, 모든 핵심 로직과 실험 결과는 본인이 독립적으로 완성했습니다. 자세한 내용은 `report.pdf` 부록 참조.

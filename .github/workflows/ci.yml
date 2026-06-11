@@ -26,21 +26,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Ensure dataset exists
-        run: |
-          if [ ! -f data/heart_disease.csv ]; then
-            python data/download_data.py
-          else
-            echo "Using committed dataset at data/heart_disease.csv"
-          fi
-
       - name: Train model
         run: |
           rm -rf mlruns
           python src/train.py
 
+      - name: Build Docker image
+        run: docker build -t cardiocare:1.0 .
+
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
-
-      - name: Run monitoring script
-        run: python src/monitor.py
