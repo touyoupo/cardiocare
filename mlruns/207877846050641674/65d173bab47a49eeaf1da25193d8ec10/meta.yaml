@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/34364/Desktop/ml/mlruns/207877846050641674/65d173bab47a49eeaf1da25193d8ec10/artifacts
+end_time: 1781164327759
+entry_point_name: ''
+experiment_id: '207877846050641674'
+lifecycle_stage: active
+run_id: 65d173bab47a49eeaf1da25193d8ec10
+run_name: tuned_logistic_regression
+run_uuid: 65d173bab47a49eeaf1da25193d8ec10
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1781164317118
+status: 3
+tags: []
+user_id: '34364'

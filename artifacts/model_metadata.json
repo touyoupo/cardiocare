@@ -1,0 +1,69 @@
+{
+  "model_version": "1.0",
+  "random_seed": 42,
+  "selection_criterion": "maximize_recall_reduce_false_negatives",
+  "comparison_table": [
+    {
+      "run_id": "204cb4951b85438a9cf21169016622f4",
+      "model_family": "logistic_regression",
+      "balanced_accuracy": 0.8733766233766234,
+      "precision": 0.8125,
+      "recall": 0.9285714285714286,
+      "f1": 0.8666666666666667
+    },
+    {
+      "run_id": "659b6fa212874ded909873e5a572d7b7",
+      "model_family": "svc",
+      "balanced_accuracy": 0.8252164502164503,
+      "precision": 0.7575757575757576,
+      "recall": 0.8928571428571429,
+      "f1": 0.819672131147541
+    },
+    {
+      "run_id": "0b753e8c856d4a85bea9e3c1f5ae2904",
+      "model_family": "random_forest",
+      "balanced_accuracy": 0.8706709956709957,
+      "precision": 0.8333333333333334,
+      "recall": 0.8928571428571429,
+      "f1": 0.8620689655172413
+    }
+  ],
+  "final_metrics": {
+    "balanced_accuracy": 0.8733766233766234,
+    "precision": 0.8125,
+    "recall": 0.9285714285714286,
+    "f1": 0.8666666666666667
+  },
+  "confusion_matrix": [
+    [
+      27,
+      6
+    ],
+    [
+      2,
+      26
+    ]
+  ],
+  "top_features": [
+    {
+      "feature": "thal",
+      "importance": 1.0250718958
+    },
+    {
+      "feature": "ca",
+      "importance": 1.0185355177
+    },
+    {
+      "feature": "cp",
+      "importance": 0.5367636234
+    },
+    {
+      "feature": "oldpeak",
+      "importance": 0.4588689123
+    },
+    {
+      "feature": "thalach",
+      "importance": 0.4318250419
+    }
+  ]
+}
