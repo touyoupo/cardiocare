@@ -6,9 +6,7 @@
 
 ```
 .
-├── data/                          # 데이터 또는 데이터 fetch 스크립트
-│   ├── download_data.py
-│   └── sample_batch.csv
+├── data/              # 또는 데이터를 받아오는 스크립트
 ├── notebooks/
 │   └── 01_eda_preprocessing.ipynb
 ├── src/
@@ -18,15 +16,15 @@
 │   └── monitor.py
 ├── tests/
 │   └── test_pipeline.py
-├── mlruns/                        # MLflow 산출물 (용량 과대 시 report.pdf 스크린샷)
+├── mlruns/            # MLflow 아티팩트 (용량이 크면 report.pdf 스크린샷)
 ├── Dockerfile
 ├── requirements.txt
-├── .github/
-│   └── workflows/
-│       └── ci.yml
+├── .github/workflows/ci.yml
 ├── report.pdf
 └── README.md
 ```
+
+`data/download_data.py`, `data/sample_batch.csv` — 학습 데이터 다운로드 및 Docker 추론용 샘플.
 
 ## 전체 재현 절차
 
@@ -84,9 +82,14 @@ mlflow ui
 | **Feature Store (1개)** | `chol` (콜레스테롤) | 심혈관 위험의 핵심 연속 지표; IQR 클리핑·표준화 후 재사용 가능 |
 | **Model Registry (1개 메타데이터)** | `recall_on_holdout` | 위음성(FN) 위험 최소화를 위해 모델 승격·롤백의 1차 기준 |
 
-## DVC (선택 확장)
+## 부록: 채점자 체크리스트 (PDF §12)
 
-`.dvc/`, `dvc.yaml`, `dvc.lock`, `params.yaml` — `dvc repro`로 파이프라인 재현 가능.
+1. `report.pdf` — 문제 정의·윤리·EDA·모델·드리프트·서빙
+2. `pip install` → `python src/train.py`
+3. `mlflow ui` — 3개 이상 run (또는 `report.pdf` 그림 7)
+4. `python -m unittest discover -s tests -v`
+5. `docker build` / `docker run`
+6. `python src/monitor.py`
 
 ## AI Tool Disclosure
 

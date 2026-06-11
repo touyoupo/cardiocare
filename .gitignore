@@ -5,15 +5,13 @@ __pycache__/
 venv/
 .env
 .DS_Store
-logs/*.log
-artifacts/predictions.csv
-/data/heart_disease.csv
-/artifacts/model.pkl
-/artifacts/model_metadata.json
-/artifacts/confusion_matrix.png
-/artifacts/feature_importance.png
+logs/
 .ipynb_checkpoints/
+
+# Generated at runtime (train / monitor / inference)
+data/heart_disease.csv
+artifacts/
+
+# MLflow local runs (screenshots in report.pdf)
 mlruns/*
 !mlruns/README.md
-/.dvc/cache
-/.dvc/tmp
