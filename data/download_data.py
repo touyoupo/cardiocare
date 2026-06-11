@@ -32,6 +32,10 @@ def download_heart_disease(output_path: str | Path = DEFAULT_DATA_PATH) -> Path:
         names=column_names,
         na_values="?",
     )
+    if len(dataframe) < 200 or dataframe[TARGET_COLUMN].isna().all():
+        raise ValueError(
+            "Downloaded dataset looks invalid. Check network access to UCI."
+        )
 
     dataframe.to_csv(output_path, index=False)
     print(f"Saved {len(dataframe)} rows to {output_path.resolve()}")

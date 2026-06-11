@@ -8,6 +8,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      MPLBACKEND: Agg
+      PYTHONUNBUFFERED: "1"
 
     steps:
       - name: Checkout repository
@@ -23,8 +26,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download dataset
-        run: python data/download_data.py
+      - name: Ensure dataset exists
+        run: |
+          if [ ! -f data/heart_disease.csv ]; then
+            python data/download_data.py
+          else
+            echo "Using committed dataset at data/heart_disease.csv"
+          fi
 
       - name: Train model
         run: python src/train.py

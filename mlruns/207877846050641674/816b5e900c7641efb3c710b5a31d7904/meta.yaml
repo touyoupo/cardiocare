@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/34364/Desktop/ml/mlruns/207877846050641674/816b5e900c7641efb3c710b5a31d7904/artifacts
+end_time: 1781165887535
+entry_point_name: ''
+experiment_id: '207877846050641674'
+lifecycle_stage: active
+run_id: 816b5e900c7641efb3c710b5a31d7904
+run_name: svc
+run_uuid: 816b5e900c7641efb3c710b5a31d7904
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1781165880617
+status: 3
+tags: []
+user_id: '34364'

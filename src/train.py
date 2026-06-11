@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -185,12 +190,13 @@ def tune_best_model(
         run_name = "tuned_random_forest"
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_SEED)
+    n_jobs = 1 if os.environ.get("GITHUB_ACTIONS") == "true" else -1
     search = GridSearchCV(
         estimator=base_pipeline,
         param_grid=param_grid,
         scoring="recall",
         cv=cv,
-        n_jobs=-1,
+        n_jobs=n_jobs,
     )
 
     with mlflow.start_run(run_name=run_name):
@@ -297,9 +303,16 @@ def save_final_artifacts(
 
     final_metrics = evaluate_classifier(pipeline, X_test, y_test)
     joblib.dump(pipeline, model_path)
-    save_evaluation_plots(pipeline, X_test, y_test, model_path.parent)
-    importance_rows = json.loads(
-        (model_path.parent / "feature_importance.json").read_text(encoding="utf-8")
+    try:
+        save_evaluation_plots(pipeline, X_test, y_test, model_path.parent)
+    except Exception as plot_error:
+        print(f"Warning: plot generation skipped: {plot_error}")
+
+    importance_path = model_path.parent / "feature_importance.json"
+    importance_rows = (
+        json.loads(importance_path.read_text(encoding="utf-8"))
+        if importance_path.exists()
+        else []
     )
 
     metadata = {
